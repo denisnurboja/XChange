@@ -90,10 +90,23 @@ public interface BitstampAuthenticated {
       @FormParam("nonce") SynchronizedValueFactory<Long> nonce) throws BitstampException, IOException;
 
   @POST
+  @Path("v2/ltc_address/")
+  public BitstampDepositAddress getLitecoinDepositAddress(@FormParam("key") String apiKey, @FormParam("signature") ParamsDigest signer,
+      @FormParam("nonce") SynchronizedValueFactory<Long> nonce) throws BitstampException, IOException;
+
+
+  @POST
   @Path("bitcoin_withdrawal/")
   public BitstampWithdrawal withdrawBitcoin(@FormParam("key") String apiKey, @FormParam("signature") ParamsDigest signer,
       @FormParam("nonce") SynchronizedValueFactory<Long> nonce, @FormParam("amount") BigDecimal amount, @FormParam("address") String address)
       throws BitstampException, IOException;
+
+  @POST
+  @Path("v2/ltc_withdrawal/")
+  public BitstampWithdrawal withdrawLitecoin(@FormParam("key") String apiKey, @FormParam("signature") ParamsDigest signer,
+      @FormParam("nonce") SynchronizedValueFactory<Long> nonce, @FormParam("amount") BigDecimal amount, @FormParam("address") String address)
+      throws BitstampException, IOException;
+
 
   @POST
   @Path("unconfirmed_btc/")
