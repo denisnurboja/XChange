@@ -5,9 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
 
 import org.knowm.xchange.bittrex.v1.dto.account.BittrexBalance;
 import org.knowm.xchange.bittrex.v1.dto.marketdata.BittrexLevel;
@@ -26,8 +24,13 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.marketdata.Trades;
 import org.knowm.xchange.dto.marketdata.Trades.TradeSortType;
+import org.knowm.xchange.dto.meta.CurrencyMetaData;
+import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
+import org.knowm.xchange.dto.meta.ExchangeMetaData;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.UserTrade;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class BittrexAdapters {
 
@@ -39,7 +42,7 @@ public final class BittrexAdapters {
 
   public static List<CurrencyPair> adaptCurrencyPairs(Collection<BittrexSymbol> bittrexSymbol) {
 
-    List<CurrencyPair> currencyPairs = new ArrayList<CurrencyPair>();
+    List<CurrencyPair> currencyPairs = new ArrayList<>();
     for (BittrexSymbol symbol : bittrexSymbol) {
       currencyPairs.add(adaptCurrencyPair(symbol));
     }
@@ -55,7 +58,7 @@ public final class BittrexAdapters {
 
   public static List<LimitOrder> adaptOpenOrders(List<BittrexOpenOrder> bittrexOpenOrders) {
 
-    List<LimitOrder> openOrders = new ArrayList<LimitOrder>();
+    List<LimitOrder> openOrders = new ArrayList<>();
 
     for (BittrexOpenOrder order : bittrexOpenOrders) {
       openOrders.add(adaptOpenOrder(order));
@@ -70,13 +73,14 @@ public final class BittrexAdapters {
     String[] currencies = bittrexOpenOrder.getExchange().split("-");
     CurrencyPair pair = new CurrencyPair(currencies[1], currencies[0]);
 
-    return new BittrexLimitOrder(type, bittrexOpenOrder.getQuantityRemaining(), pair, bittrexOpenOrder.getOrderUuid(), null,
-        bittrexOpenOrder.getLimit(), bittrexOpenOrder.getQuantityRemaining(), bittrexOpenOrder.getPricePerUnit());
+    return new BittrexLimitOrder(type, bittrexOpenOrder.getQuantityRemaining(), pair, bittrexOpenOrder.getOrderUuid(),
+        BittrexUtils.toDate(bittrexOpenOrder.getOpened()), bittrexOpenOrder.getLimit(), bittrexOpenOrder.getQuantityRemaining(),
+        bittrexOpenOrder.getPricePerUnit());
   }
 
   public static List<LimitOrder> adaptOrders(BittrexLevel[] orders, CurrencyPair currencyPair, String orderType, String id) {
 
-    List<LimitOrder> limitOrders = new ArrayList<LimitOrder>(orders.length);
+    List<LimitOrder> limitOrders = new ArrayList<>(orders.length);
 
     for (BittrexLevel order : orders) {
       limitOrders.add(adaptOrder(order.getAmount(), order.getPrice(), currencyPair, orderType, id));
@@ -104,7 +108,7 @@ public final class BittrexAdapters {
 
   public static Trades adaptTrades(BittrexTrade[] trades, CurrencyPair currencyPair) {
 
-    List<Trade> tradesList = new ArrayList<Trade>(trades.length);
+    List<Trade> tradesList = new ArrayList<>(trades.length);
     long lastTradeId = 0;
     for (BittrexTrade trade : trades) {
       long tradeId = Long.valueOf(trade.getId());
@@ -133,7 +137,7 @@ public final class BittrexAdapters {
 
   public static Wallet adaptWallet(List<BittrexBalance> balances) {
 
-    List<Balance> wallets = new ArrayList<Balance>(balances.size());
+    List<Balance> wallets = new ArrayList<>(balances.size());
 
     for (BittrexBalance balance : balances) {
       wallets.add(new Balance(Currency.getInstance(balance.getCurrency().toUpperCase()), balance.getBalance(), balance.getAvailable(),
@@ -146,7 +150,7 @@ public final class BittrexAdapters {
 
   public static List<UserTrade> adaptUserTrades(List<BittrexUserTrade> bittrexUserTrades) {
 
-    List<UserTrade> trades = new ArrayList<UserTrade>();
+    List<UserTrade> trades = new ArrayList<>();
 
     for (BittrexUserTrade bittrexTrade : bittrexUserTrades) {
       trades.add(adaptUserTrade(bittrexTrade));
@@ -171,6 +175,27 @@ public final class BittrexAdapters {
     }
 
     return new UserTrade(orderType, amount, currencyPair, price, date, orderId, orderId, trade.getCommission(), currencyPair.counter);
+  }
+
+  public static ExchangeMetaData adaptMetaData(List<BittrexSymbol> rawSymbols, ExchangeMetaData metaData) {
+
+    List<CurrencyPair> currencyPairs = BittrexAdapters.adaptCurrencyPairs(rawSymbols);
+
+    Map<CurrencyPair, CurrencyPairMetaData> pairsMap = metaData.getCurrencyPairs();
+    Map<Currency, CurrencyMetaData> currenciesMap = metaData.getCurrencies();
+    for (CurrencyPair c : currencyPairs) {
+      if (!pairsMap.containsKey(c)) {
+        pairsMap.put(c, null);
+      }
+      if (!currenciesMap.containsKey(c.base)) {
+        currenciesMap.put(c.base, null);
+      }
+      if (!currenciesMap.containsKey(c.counter)) {
+        currenciesMap.put(c.counter, null);
+      }
+    }
+
+    return metaData;
   }
 
 }

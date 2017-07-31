@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.TimeZone;
 
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.knowm.xchange.bitstamp.dto.account.BitstampBalance;
 import org.knowm.xchange.bitstamp.dto.marketdata.BitstampOrderBook;
 import org.knowm.xchange.bitstamp.dto.marketdata.BitstampTicker;
@@ -25,6 +23,8 @@ import org.knowm.xchange.dto.marketdata.Ticker;
 import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.marketdata.Trades;
 import org.knowm.xchange.dto.trade.UserTrades;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests the BitstampAdapter class
@@ -52,6 +52,8 @@ public class BitstampAdapterTest {
     assertThat(accountInfo.getWallet().getBalance(Currency.BTC).getTotal()).isEqualTo("6.99990000");
     assertThat(accountInfo.getWallet().getBalance(Currency.BTC).getAvailable()).isEqualTo("6.99990000");
     assertThat(accountInfo.getWallet().getBalance(Currency.BTC).getFrozen()).isEqualTo("0");
+    assertThat(accountInfo.getWallet().getBalance(Currency.XRP).getCurrency()).isEqualTo(Currency.XRP);
+    assertThat(accountInfo.getWallet().getBalance(Currency.XRP).getTotal()).isEqualTo("7771.05654");
   }
 
   @Test
@@ -64,7 +66,7 @@ public class BitstampAdapterTest {
     ObjectMapper mapper = new ObjectMapper();
     BitstampOrderBook bitstampOrderBook = mapper.readValue(is, BitstampOrderBook.class);
 
-    OrderBook orderBook = BitstampAdapters.adaptOrderBook(bitstampOrderBook, CurrencyPair.BTC_USD, 1000);
+    OrderBook orderBook = BitstampAdapters.adaptOrderBook(bitstampOrderBook, CurrencyPair.BTC_USD);
     assertThat(orderBook.getBids().size()).isEqualTo(1281);
 
     // verify all fields filled
@@ -162,6 +164,7 @@ public class BitstampAdapterTest {
     assertThat(userTradeHistory.getUserTrades().get(1).getFeeAmount().toString()).isEqualTo("0.06");
 
     SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    f.setTimeZone(TimeZone.getTimeZone("UTC"));
     String dateString = f.format(userTradeHistory.getTrades().get(0).getTimestamp());
     assertThat(dateString).isEqualTo("2013-09-02 13:17:49");
   }

@@ -12,13 +12,10 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order.OrderType;
+import org.knowm.xchange.dto.account.FundingRecord;
 import org.knowm.xchange.dto.account.Wallet;
 import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.marketdata.Ticker;
@@ -27,7 +24,9 @@ import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.dto.trade.UserTrades;
+import org.knowm.xchange.kraken.dto.account.KrakenLedger;
 import org.knowm.xchange.kraken.dto.account.results.KrakenBalanceResult;
+import org.knowm.xchange.kraken.dto.account.results.KrakenLedgerResult;
 import org.knowm.xchange.kraken.dto.marketdata.KrakenDepth;
 import org.knowm.xchange.kraken.dto.marketdata.results.KrakenAssetPairsResult;
 import org.knowm.xchange.kraken.dto.marketdata.results.KrakenDepthResult;
@@ -38,6 +37,10 @@ import org.knowm.xchange.kraken.dto.trade.KrakenUserTrade;
 import org.knowm.xchange.kraken.dto.trade.results.KrakenOpenOrdersResult;
 import org.knowm.xchange.kraken.dto.trade.results.KrakenTradeHistoryResult;
 import org.knowm.xchange.kraken.dto.trade.results.KrakenTradeHistoryResult.KrakenTradeHistory;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class KrakenAdaptersTest {
 
@@ -78,6 +81,7 @@ public class KrakenAdaptersTest {
     Set<CurrencyPair> pairs = KrakenAdapters.adaptCurrencyPairs(krakenAssetPairs.getResult().keySet());
     assertThat(pairs).hasSize(21);
     assertThat(pairs.contains(CurrencyPair.BTC_USD)).isTrue();
+    System.out.println("pairs = " + pairs);
   }
 
   @Test
@@ -155,12 +159,12 @@ public class KrakenAdaptersTest {
     OpenOrders orders = KrakenAdapters.adaptOpenOrders(krakenResult.getResult().getOrders());
 
     // Verify that the example data was unmarshalled correctly
-    assertThat(orders.getOpenOrders()).hasSize(1);
-    assertThat(orders.getOpenOrders().get(0).getId()).isEqualTo("OR6QMM-BCKM4-Q6YHIN");
-    assertThat(orders.getOpenOrders().get(0).getLimitPrice()).isEqualTo("13.00000");
-    assertThat(orders.getOpenOrders().get(0).getTradableAmount()).isEqualTo("0.01000000");
-    assertThat(orders.getOpenOrders().get(0).getCurrencyPair().base).isEqualTo(Currency.LTC);
-    assertThat(orders.getOpenOrders().get(0).getCurrencyPair().counter).isEqualTo(Currency.EUR);
+    assertThat(orders.getOpenOrders()).hasSize(6);
+    assertThat(orders.getOpenOrders().get(0).getId()).isEqualTo("O767CW-TXHCL-FWZ5R2");
+    assertThat(orders.getOpenOrders().get(0).getLimitPrice()).isEqualTo("0.00001000");
+    assertThat(orders.getOpenOrders().get(0).getTradableAmount()).isEqualTo("1000.00000000");
+    assertThat(orders.getOpenOrders().get(0).getCurrencyPair().base).isEqualTo(Currency.XRP);
+    assertThat(orders.getOpenOrders().get(0).getCurrencyPair().counter).isEqualTo(Currency.BTC);
     assertThat(orders.getOpenOrders().get(0).getType()).isEqualTo(OrderType.BID);
   }
 
@@ -213,5 +217,29 @@ public class KrakenAdaptersTest {
     assertThat(trade.getFeeAmount()).isEqualTo("0.03208");
     assertThat(trade.getFeeCurrency()).isEqualTo(Currency.LTC);
     assertThat(((KrakenUserTrade) trade).getCost()).isEqualTo("16.03781");
+  }
+
+  @Test
+  public void testAdaptFundingHistory() throws JsonParseException, JsonMappingException, IOException {
+
+    // Read in the JSON from the example resources
+    InputStream is = KrakenAdaptersTest.class.getResourceAsStream("/account/example-ledgerinfo-data.json");
+
+    // Use Jackson to parse it
+    ObjectMapper mapper = new ObjectMapper();
+    KrakenLedgerResult krakenResult = mapper.readValue(is, KrakenLedgerResult.class);
+    KrakenLedgerResult.KrakenLedgers ledgers = krakenResult.getResult();
+    Map<String, KrakenLedger> ledgerMap = ledgers.getLedgerMap();
+
+    List<FundingRecord> records = KrakenAdapters.adaptFundingHistory(ledgerMap);
+
+    assertThat(records.size()).isEqualTo(3);
+    FundingRecord fundingRecord = records.get(1);
+    assertThat(fundingRecord).isInstanceOf(FundingRecord.class);
+    assertThat(fundingRecord.getType()).isEqualTo(FundingRecord.Type.WITHDRAWAL);
+    assertThat(fundingRecord.getStatus()).isEqualTo(FundingRecord.Status.COMPLETE);
+    assertThat(fundingRecord.getAmount()).isEqualTo(new BigDecimal("15.9857300000"));
+    assertThat(fundingRecord.getFee().doubleValue()).isEqualTo(new BigDecimal("0.02").doubleValue());
+    assertThat(fundingRecord.getBalance().doubleValue()).isEqualTo(BigDecimal.ZERO.doubleValue());
   }
 }

@@ -1,8 +1,11 @@
 {
-  "currencyPair": {
+  "currency_pairs": {
     "BTC/CNY": {
-      "priceScale": 2
+    },
+    "LTC/CNY": {
+    },
+    "LTC/BTC": {
     }
   },
-  "currency": {}
+  "currencies": {}
 }

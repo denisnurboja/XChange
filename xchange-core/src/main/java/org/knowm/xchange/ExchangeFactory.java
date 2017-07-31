@@ -1,10 +1,9 @@
 package org.knowm.xchange;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.utils.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -18,26 +17,27 @@ public enum ExchangeFactory {
 
   INSTANCE;
 
+  // flags
   private final Logger log = LoggerFactory.getLogger(ExchangeFactory.class);
 
   /**
    * Constructor
    */
-  private ExchangeFactory() {
+  ExchangeFactory() {
 
   }
 
   /**
-   * Create an Exchange object.
+   * Create an Exchange object without default ExchangeSpecification
    * <p>
    * The factory is parameterised with the name of the exchange implementation class. This must be a class extending
    * {@link org.knowm.xchange.Exchange}.
    * </p>
-   * 
+   *
    * @param exchangeClassName the fully-qualified class name of the exchange
    * @return a new exchange instance configured with the default {@link org.knowm.xchange.ExchangeSpecification}
    */
-  public Exchange createExchange(String exchangeClassName) {
+  public Exchange createExchangeWithoutSpecification(String exchangeClassName) {
 
     Assert.notNull(exchangeClassName, "exchangeClassName cannot be null");
 
@@ -53,7 +53,6 @@ public enum ExchangeFactory {
       if (Exchange.class.isAssignableFrom(exchangeProviderClass)) {
         // Instantiate through the default constructor and use the default exchange specification
         Exchange exchange = (Exchange) exchangeProviderClass.newInstance();
-        exchange.applySpecification(exchange.getDefaultExchangeSpecification());
         return exchange;
       } else {
         throw new ExchangeException("Class '" + exchangeClassName + "' does not implement Exchange");
@@ -68,6 +67,85 @@ public enum ExchangeFactory {
 
     // Cannot be here due to exceptions
 
+  }
+
+  /**
+   * Create an Exchange object with default ExchangeSpecification with authentication info and API keys provided through parameters
+   * <p>
+   * The factory is parameterised with the name of the exchange implementation class. This must be a class extending
+   * {@link org.knowm.xchange.Exchange}.
+   * </p>
+   *
+   * @param exchangeClassName the fully-qualified class name of the exchange
+   * @param userName the username for authentication
+   * @param password the password for authentication
+   * @param apiKey the public API key
+   * @param secretKey the secret API key
+   * @return a new exchange instance configured with the default {@link org.knowm.xchange.ExchangeSpecification}
+   */
+  public Exchange createExchange(String exchangeClassName, String userName, String password, String apiKey, String secretKey) {
+
+    Assert.notNull(exchangeClassName, "exchangeClassName cannot be null");
+
+    log.debug("Creating default exchange from class name");
+
+    Exchange exchange = createExchangeWithoutSpecification(exchangeClassName);
+
+    ExchangeSpecification specification = exchange.getDefaultExchangeSpecification();
+    if (userName != null)  specification.setUserName(userName);
+    if (password != null)  specification.setPassword(password);
+    if (apiKey != null)    specification.setApiKey(apiKey);
+    if (secretKey != null) specification.setSecretKey(secretKey);
+    exchange.applySpecification(specification);
+
+    return exchange;
+
+  }
+
+  /**
+   * Create an Exchange object with default ExchangeSpecification with authentication info provided through parameters
+   * <p>
+   * The factory is parameterised with the name of the exchange implementation class. This must be a class extending
+   * {@link org.knowm.xchange.Exchange}.
+   * </p>
+   *
+   * @param exchangeClassName the fully-qualified class name of the exchange
+   * @param userName the username for authentication
+   * @param password the password for authentication
+   * @return a new exchange instance configured with the default {@link org.knowm.xchange.ExchangeSpecification}
+   */
+  public Exchange createExchangeWithUserNameAndPassword(String exchangeClassName, String userName, String password) {
+    return createExchange(exchangeClassName, userName, password, null, null);
+  }
+
+  /**
+   * Create an Exchange object with default ExchangeSpecification with API keys provided through parameters
+   * <p>
+   * The factory is parameterised with the name of the exchange implementation class. This must be a class extending
+   * {@link org.knowm.xchange.Exchange}.
+   * </p>
+   *
+   * @param exchangeClassName the fully-qualified class name of the exchange
+   * @param apiKey the public API key
+   * @param secretKey the secret API key
+   * @return a new exchange instance configured with the default {@link org.knowm.xchange.ExchangeSpecification}
+   */
+  public Exchange createExchangeWithApiKeys(String exchangeClassName, String apiKey, String secretKey) {
+    return createExchange(exchangeClassName, null, null, apiKey, secretKey);
+  }
+
+  /**
+   * Create an Exchange object with default ExchangeSpecification
+   * <p>
+   * The factory is parameterised with the name of the exchange implementation class. This must be a class extending
+   * {@link org.knowm.xchange.Exchange}.
+   * </p>
+   *
+   * @param exchangeClassName the fully-qualified class name of the exchange
+   * @return a new exchange instance configured with the default {@link org.knowm.xchange.ExchangeSpecification}
+   */
+  public Exchange createExchange(String exchangeClassName) {
+    return createExchange(exchangeClassName, null, null, null, null);
   }
 
   public Exchange createExchange(ExchangeSpecification exchangeSpecification) {

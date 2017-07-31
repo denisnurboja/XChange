@@ -11,11 +11,11 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.junit.Test;
+import org.knowm.xchange.utils.DateUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapLikeType;
-import org.knowm.xchange.utils.DateUtils;
 
 /**
  * @author jamespedwards42
@@ -79,12 +79,8 @@ public class CoinbaseMarketDataJsonTest {
     // Read in the JSON from the example resources
     InputStream is = CoinbaseMarketDataJsonTest.class.getResourceAsStream("/marketdata/example-spot-rate-history-data.json");
     String spotPriceHistoryString;
-    Scanner scanner = null;
-    try {
-      scanner = new Scanner(is);
+    try (Scanner scanner = new Scanner(is)) {
       spotPriceHistoryString = scanner.useDelimiter("\\A").next();
-    } finally {
-      scanner.close();
     }
 
     CoinbaseSpotPriceHistory spotPriceHistory = CoinbaseSpotPriceHistory.fromRawString(spotPriceHistoryString);

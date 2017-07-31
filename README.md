@@ -1,6 +1,7 @@
 ## [![XChange](https://raw.githubusercontent.com/timmolter/XChange/develop/etc/XChange_64_64.png)](http://knowm.org/open-source/xchange) XChange
 
-XChange is a Java library providing a simple and consistent API for interacting with 50+ Bitcoin and other crypto currency exchanges providing a consistent interface for trading and accessing market data.
+XChange is a Java library providing a simple and consistent API for interacting with 60+ Bitcoin and other crypto currency exchanges providing a
+consistent interface for trading and accessing market data.
 
 ## Important!
 
@@ -18,7 +19,7 @@ Usage is very simple: Create an Exchange instance, get the appropriate service, 
 
     Exchange bitstamp = ExchangeFactory.INSTANCE.createExchange(BitstampExchange.class.getName());
 
-    PollingMarketDataService marketDataService = bitstamp.getPollingMarketDataService();
+    MarketDataService marketDataService = bitstamp.getMarketDataService();
 
     Ticker ticker = marketDataService.getTicker(CurrencyPair.BTC_USD);
 
@@ -35,14 +36,15 @@ Now go ahead and [study some more examples](http://knowm.org/open-source/xchange
 * [x] active development
 * [x] very minimal 3rd party dependencies
 * [x] modular components
-* [x] polling and streaming capability
-    
+
 ## More Info
 
 Project Site: <http://knowm.org/open-source/xchange>  
 Example Code: <http://knowm.org/open-source/xchange/xchange-example-code>  
 Change Log: <http://knowm.org/open-source/xchange/xchange-change-log/>  
 Java Docs: <http://knowm.org/javadocs/xchange/index.html>  
+
+Looking for streaming API? Use library [xchange-stream](https://github.com/bitrich-info/xchange-stream) based on XChange.
 
 ## Wiki
 
@@ -76,17 +78,17 @@ Add the following dependencies in your pom.xml file. You will need at least xcha
     <dependency>
       <groupId>org.knowm.xchange</groupId>
       <artifactId>xchange-core</artifactId>
-      <version>4.0.0</version>
+      <version>4.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.knowm.xchange</groupId>
       <artifactId>xchange-examples</artifactId>
-      <version>4.0.0</version>
+      <version>4.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.knowm.xchange</groupId>
       <artifactId>xchange-XYZ</artifactId>
-      <version>4.0.0</version>
+      <version>4.2.0</version>
     </dependency>
 
 For snapshots, add the following repository to your pom.xml file.
@@ -99,7 +101,7 @@ For snapshots, add the following repository to your pom.xml file.
     
 The current snapshot version is: 
 
-    4.0.1-SNAPSHOT
+    4.2.1-SNAPSHOT
     
 ## Building with Maven
 

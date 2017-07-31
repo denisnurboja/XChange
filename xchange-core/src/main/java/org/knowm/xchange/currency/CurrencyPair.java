@@ -66,16 +66,23 @@ public class CurrencyPair implements Comparable<CurrencyPair> {
   public static final CurrencyPair BTC_PHP = new CurrencyPair(Currency.BTC, Currency.PHP);
   public static final CurrencyPair BTC_STR = new CurrencyPair(Currency.BTC, Currency.STR);
   public static final CurrencyPair BTC_INR = new CurrencyPair(Currency.BTC, Currency.INR);
+  public static final CurrencyPair BTC_XAUR = new CurrencyPair(Currency.BTC, Currency.XAUR);
+  public static final CurrencyPair BTC_IOC = new CurrencyPair(Currency.BTC, Currency.IOC);
 
   public static final CurrencyPair ETH_BTC = new CurrencyPair(Currency.ETH, Currency.BTC);
   public static final CurrencyPair ETH_USD = new CurrencyPair(Currency.ETH, Currency.USD);
   public static final CurrencyPair ETH_EUR = new CurrencyPair(Currency.ETH, Currency.EUR);
   public static final CurrencyPair ETH_JPY = new CurrencyPair(Currency.ETH, Currency.JPY);
   public static final CurrencyPair ETH_CNY = new CurrencyPair(Currency.ETH, Currency.CNY);
+  public static final CurrencyPair ETH_AUD = new CurrencyPair(Currency.ETH, Currency.AUD);
+  public static final CurrencyPair ETH_NZD = new CurrencyPair(Currency.ETH, Currency.NZD);
+
+  public static final CurrencyPair XAUR_BTC = new CurrencyPair(Currency.XAUR, Currency.BTC);
 
   public static final CurrencyPair XDC_BTC = new CurrencyPair(Currency.XDC, Currency.BTC);
 
   public static final CurrencyPair XRP_BTC = new CurrencyPair(Currency.XRP, Currency.BTC);
+  public static final CurrencyPair XRP_EUR = new CurrencyPair(Currency.XRP, Currency.EUR);
 
   public static final CurrencyPair LTC_USD = new CurrencyPair(Currency.LTC, Currency.USD);
   public static final CurrencyPair LTC_KRW = new CurrencyPair(Currency.LTC, Currency.KRW);
@@ -207,7 +214,7 @@ public class CurrencyPair implements Comparable<CurrencyPair> {
    * Parse currency pair from a string in the same format as returned by toString() method - ABC/XYZ
    */
   public CurrencyPair(String currencyPair) {
-    int split = currencyPair.indexOf("/");
+    int split = currencyPair.indexOf('/');
     if (split < 1) {
       throw new IllegalArgumentException("Could not parse currency pair from '" + currencyPair + "'");
     }
@@ -222,6 +229,10 @@ public class CurrencyPair implements Comparable<CurrencyPair> {
   public String toString() {
 
     return base + "/" + counter;
+  }
+
+  public boolean contains(Currency currency) {
+    return base.equals(currency) || counter.equals(currency);
   }
 
   @Override

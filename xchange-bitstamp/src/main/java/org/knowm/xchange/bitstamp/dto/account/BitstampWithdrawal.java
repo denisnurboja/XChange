@@ -1,7 +1,8 @@
 package org.knowm.xchange.bitstamp.dto.account;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.knowm.xchange.bitstamp.dto.BitstampBaseResponse;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Matija Mazi
@@ -12,7 +13,7 @@ public final class BitstampWithdrawal extends BitstampBaseResponse {
 
   /**
    * Constructor
-   * 
+   *
    * @param id
    */
   public BitstampWithdrawal(@JsonProperty("id") Integer id, @JsonProperty("error") String error) {

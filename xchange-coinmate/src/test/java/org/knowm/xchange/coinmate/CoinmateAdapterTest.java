@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2015 Coinmate.
+ * Copyright 2015-2016 Coinmate.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,15 @@ import static org.fest.assertions.api.Assertions.assertThat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 
 import org.junit.Test;
+import org.knowm.xchange.coinmate.dto.marketdata.CoinmateTicker;
+import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.marketdata.Ticker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.knowm.xchange.coinmate.dto.marketdata.CoinmateTicker;
-import org.knowm.xchange.dto.marketdata.Ticker;
 
 /**
  * @author Martin Stachon
@@ -50,12 +53,16 @@ public class CoinmateAdapterTest {
     ObjectMapper mapper = new ObjectMapper();
     CoinmateTicker bitstampTicker = mapper.readValue(is, CoinmateTicker.class);
 
-    Ticker ticker = CoinmateAdapters.adaptTicker(bitstampTicker, CoinmateAdapters.COINMATE_DEFAULT_PAIR);
+    Ticker ticker = CoinmateAdapters.adaptTicker(bitstampTicker, CurrencyPair.BTC_EUR);
 
     assertThat(ticker.getLast().toString()).isEqualTo("254.08");
     assertThat(ticker.getBid().toString()).isEqualTo("252.93");
     assertThat(ticker.getAsk().toString()).isEqualTo("254.08");
     assertThat(ticker.getVolume()).isEqualTo(new BigDecimal("42.78294066"));
+    SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    f.setTimeZone(TimeZone.getTimeZone("UTC"));
+    String dateString = f.format(ticker.getTimestamp());
+    assertThat(dateString).isEqualTo("2017-01-26 20:12:57");
   }
 
 }

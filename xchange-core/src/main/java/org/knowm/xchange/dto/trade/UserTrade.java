@@ -7,7 +7,8 @@ import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.marketdata.Trade;
-import org.knowm.xchange.service.polling.trade.params.TradeHistoryParams;
+import org.knowm.xchange.service.trade.TradeService;
+import org.knowm.xchange.service.trade.params.TradeHistoryParams;
 
 /**
  * Data object representing a user trade
@@ -30,8 +31,7 @@ public class UserTrade extends Trade {
   private final Currency feeCurrency;
 
   /**
-   * This constructor is called to construct user's trade objects (in
-   * {@link org.knowm.xchange.service.polling.trade.PollingTradeService#getTradeHistory(TradeHistoryParams)} implementations).
+   * This constructor is called to construct user's trade objects (in {@link TradeService#getTradeHistory(TradeHistoryParams)} implementations).
    *
    * @param type The trade type (BID side or ASK side)
    * @param tradableAmount The depth of this trade

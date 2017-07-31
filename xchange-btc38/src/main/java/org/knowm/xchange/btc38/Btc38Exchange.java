@@ -2,10 +2,15 @@ package org.knowm.xchange.btc38;
 
 import org.knowm.xchange.BaseExchange;
 import org.knowm.xchange.ExchangeSpecification;
-import org.knowm.xchange.btc38.service.polling.Btc38MarketDataService;
+import org.knowm.xchange.btc38.service.Btc38MarketDataService;
+import org.knowm.xchange.btc38.service.Btc38MarketDataServiceRaw;
+import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.utils.nonce.CurrentTimeNonceFactory;
-
 import si.mazi.rescu.SynchronizedValueFactory;
+
+import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * Created by Yingzhe on 12/17/2014.
@@ -23,7 +28,7 @@ public class Btc38Exchange extends BaseExchange {
 
   @Override
   protected void initServices() {
-    this.pollingMarketDataService = new Btc38MarketDataService(this);
+    this.marketDataService = new Btc38MarketDataService(this);
   }
 
   @Override
@@ -44,4 +49,12 @@ public class Btc38Exchange extends BaseExchange {
 
     return nonceFactory;
   }
+
+  @Override
+  public void remoteInit() throws IOException, ExchangeException {
+    HashMap<String, CurrencyPair> pairs = ((Btc38MarketDataServiceRaw) marketDataService).getCurrencyPairMap();
+    exchangeMetaData = Btc38Adapters.adaptToExchangeMetaData(pairs.values());
+  }
+
+
 }

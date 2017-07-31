@@ -3,17 +3,12 @@ package org.knowm.xchange.btce.v3;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.knowm.xchange.btce.v3.dto.account.BTCEAccountInfo;
 import org.knowm.xchange.btce.v3.dto.marketdata.BTCEExchangeInfo;
@@ -22,9 +17,11 @@ import org.knowm.xchange.btce.v3.dto.marketdata.BTCETicker;
 import org.knowm.xchange.btce.v3.dto.marketdata.BTCETrade;
 import org.knowm.xchange.btce.v3.dto.meta.BTCEMetaData;
 import org.knowm.xchange.btce.v3.dto.trade.BTCEOrder;
+import org.knowm.xchange.btce.v3.dto.trade.BTCEOrderInfoResult;
 import org.knowm.xchange.btce.v3.dto.trade.BTCETradeHistoryResult;
 import org.knowm.xchange.currency.Currency;
 import org.knowm.xchange.currency.CurrencyPair;
+import org.knowm.xchange.dto.Order.OrderStatus;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.account.Balance;
 import org.knowm.xchange.dto.account.Wallet;
@@ -33,8 +30,8 @@ import org.knowm.xchange.dto.marketdata.Trade;
 import org.knowm.xchange.dto.marketdata.Trades;
 import org.knowm.xchange.dto.marketdata.Trades.TradeSortType;
 import org.knowm.xchange.dto.meta.CurrencyMetaData;
+import org.knowm.xchange.dto.meta.CurrencyPairMetaData;
 import org.knowm.xchange.dto.meta.ExchangeMetaData;
-import org.knowm.xchange.dto.meta.MarketMetaData;
 import org.knowm.xchange.dto.meta.RateLimit;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.MarketOrder;
@@ -42,6 +39,8 @@ import org.knowm.xchange.dto.trade.OpenOrders;
 import org.knowm.xchange.dto.trade.UserTrade;
 import org.knowm.xchange.dto.trade.UserTrades;
 import org.knowm.xchange.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Various adapters for converting from BTCE DTOs to XChange DTOs
@@ -68,7 +67,7 @@ public final class BTCEAdapters {
    */
   public static List<LimitOrder> adaptOrders(List<BigDecimal[]> bTCEOrders, CurrencyPair currencyPair, String orderTypeString, String id) {
 
-    List<LimitOrder> limitOrders = new ArrayList<LimitOrder>();
+    List<LimitOrder> limitOrders = new ArrayList<>();
     OrderType orderType = orderTypeString.equalsIgnoreCase("bid") ? OrderType.BID : OrderType.ASK;
 
     for (BigDecimal[] btceOrder : bTCEOrders) {
@@ -120,7 +119,7 @@ public final class BTCEAdapters {
    */
   public static Trades adaptTrades(BTCETrade[] bTCETrades, CurrencyPair currencyPair) {
 
-    List<Trade> tradesList = new ArrayList<Trade>();
+    List<Trade> tradesList = new ArrayList<>();
     long lastTradeId = 0;
     for (BTCETrade bTCETrade : bTCETrades) {
       // Date is reversed order. Insert at index 0 instead of appending
@@ -156,14 +155,14 @@ public final class BTCEAdapters {
 
   public static Wallet adaptWallet(BTCEAccountInfo btceAccountInfo) {
 
-    List<Balance> balances = new ArrayList<Balance>();
+    List<Balance> balances = new ArrayList<>();
     Map<String, BigDecimal> funds = btceAccountInfo.getFunds();
 
     for (String lcCurrency : funds.keySet()) {
-      /* BTC-E signals DASH as DSH. This is a different coin. Translate in correct DASH name */ 
+      /* BTC-E signals DASH as DSH. This is a different coin. Translate in correct DASH name */
       BigDecimal fund = funds.get(lcCurrency);
       if (lcCurrency.equals("dsh")) {
-    	  lcCurrency = "dash";
+        lcCurrency = "dash";
       }
       Currency currency = Currency.getInstance(lcCurrency);
       balances.add(new Balance(currency, fund));
@@ -173,7 +172,7 @@ public final class BTCEAdapters {
 
   public static OpenOrders adaptOrders(Map<Long, BTCEOrder> btceOrderMap) {
 
-    List<LimitOrder> limitOrders = new ArrayList<LimitOrder>();
+    List<LimitOrder> limitOrders = new ArrayList<>();
     for (Long id : btceOrderMap.keySet()) {
       BTCEOrder bTCEOrder = btceOrderMap.get(id);
       OrderType orderType = bTCEOrder.getType() == BTCEOrder.Type.buy ? OrderType.BID : OrderType.ASK;
@@ -188,7 +187,7 @@ public final class BTCEAdapters {
 
   public static UserTrades adaptTradeHistory(Map<Long, BTCETradeHistoryResult> tradeHistory) {
 
-    List<UserTrade> trades = new ArrayList<UserTrade>(tradeHistory.size());
+    List<UserTrade> trades = new ArrayList<>(tradeHistory.size());
     for (Entry<Long, BTCETradeHistoryResult> entry : tradeHistory.entrySet()) {
       BTCETradeHistoryResult result = entry.getValue();
       OrderType type = result.getType() == BTCETradeHistoryResult.Type.buy ? OrderType.BID : OrderType.ASK;
@@ -203,22 +202,56 @@ public final class BTCEAdapters {
     return new UserTrades(trades, TradeSortType.SortByTimestamp);
   }
 
+  /**
+   * Adapts a BTCEOrderInfoResult to a LimitOrder
+   *
+   * @param orderId Order original id
+   * @param orderInfo
+   * @return
+   */
+  public static LimitOrder adaptOrderInfo(String orderId, BTCEOrderInfoResult orderInfo) {
+      
+    OrderType orderType = orderInfo.getType() == BTCEOrderInfoResult.Type.buy ? OrderType.BID : OrderType.ASK;
+    BigDecimal price = orderInfo.getRate();
+    Date timestamp = DateUtils.fromMillisUtc(orderInfo.getTimestampCreated() * 1000L);
+    CurrencyPair currencyPair = adaptCurrencyPair(orderInfo.getPair());
+    OrderStatus orderStatus = null;
+    switch (orderInfo.getStatus()) {
+        case 0:
+            if (orderInfo.getAmount().compareTo(orderInfo.getStartAmount()) == 0){
+                orderStatus = OrderStatus.NEW;
+            } else {
+                orderStatus = OrderStatus.PARTIALLY_FILLED;
+            }
+            break;
+        case 1:
+            orderStatus = OrderStatus.FILLED;
+            break;
+        case 2:
+        case 3:
+            orderStatus = OrderStatus.CANCELED;
+            break;
+    }
+
+    return new LimitOrder(orderType, orderInfo.getStartAmount(), currencyPair, orderId, timestamp, price, price, orderInfo.getStartAmount().subtract(orderInfo.getAmount()), orderStatus);
+  }
+
   public static CurrencyPair adaptCurrencyPair(String btceCurrencyPair) {
 
     String[] currencies = btceCurrencyPair.split("_");
-    /* BTC-E signals DASH as DSH. This is a different coin. Translate in correct DASH name */ 
+    /* BTC-E signals DASH as DSH. This is a different coin. Translate in correct DASH name */
     if (currencies[0].equals("dsh")) {
-    	currencies[0] = "dash";
+      currencies[0] = "dash";
     }
     if (currencies[1].equals("dsh")) {
-    	currencies[1] = "dash";
+      currencies[1] = "dash";
     }
     return new CurrencyPair(currencies[0].toUpperCase(), currencies[1].toUpperCase());
   }
 
   public static List<CurrencyPair> adaptCurrencyPairs(Iterable<String> btcePairs) {
 
-    List<CurrencyPair> pairs = new ArrayList<CurrencyPair>();
+    List<CurrencyPair> pairs = new ArrayList<>();
     for (String btcePair : btcePairs) {
       pairs.add(adaptCurrencyPair(btcePair));
     }
@@ -227,22 +260,22 @@ public final class BTCEAdapters {
   }
 
   public static ExchangeMetaData toMetaData(BTCEExchangeInfo btceExchangeInfo, BTCEMetaData btceMetaData) {
-    Map<CurrencyPair, MarketMetaData> currencyPairs = new HashMap<CurrencyPair, MarketMetaData>();
-    Map<Currency, CurrencyMetaData> currencies = new HashMap<Currency, CurrencyMetaData>();
+    Map<CurrencyPair, CurrencyPairMetaData> currencyPairs = new HashMap<>();
+    Map<Currency, CurrencyMetaData> currencies = new HashMap<>();
 
-    if (btceExchangeInfo != null)
+    if (btceExchangeInfo != null) {
       for (Entry<String, BTCEPairInfo> e : btceExchangeInfo.getPairs().entrySet()) {
         CurrencyPair pair = adaptCurrencyPair(e.getKey());
-        MarketMetaData marketMetaData = toMarketMetaData(e.getValue(), btceMetaData);
+        CurrencyPairMetaData marketMetaData = toMarketMetaData(e.getValue(), btceMetaData);
         currencyPairs.put(pair, marketMetaData);
 
         addCurrencyMetaData(pair.base, currencies, btceMetaData);
         addCurrencyMetaData(pair.counter, currencies, btceMetaData);
       }
+    }
 
-    HashSet<RateLimit> publicRateLimits = new HashSet<>(
-        Collections.singleton(new RateLimit(btceMetaData.publicInfoCacheSeconds, 1, TimeUnit.SECONDS)));
-    return new ExchangeMetaData(currencyPairs, currencies, publicRateLimits, Collections.<RateLimit> emptySet(), false);
+    RateLimit[] publicRateLimits = new RateLimit[]{new RateLimit(btceMetaData.publicInfoCacheSeconds, 1, TimeUnit.SECONDS)};
+    return new ExchangeMetaData(currencyPairs, currencies, publicRateLimits, null, false);
   }
 
   private static void addCurrencyMetaData(Currency symbol, Map<Currency, CurrencyMetaData> currencies, BTCEMetaData btceMetaData) {
@@ -251,12 +284,12 @@ public final class BTCEAdapters {
     }
   }
 
-  public static MarketMetaData toMarketMetaData(BTCEPairInfo info, BTCEMetaData btceMetaData) {
+  public static CurrencyPairMetaData toMarketMetaData(BTCEPairInfo info, BTCEMetaData btceMetaData) {
     int priceScale = info.getDecimals();
     BigDecimal minimumAmount = withScale(info.getMinAmount(), btceMetaData.amountScale);
     BigDecimal feeFraction = info.getFee().movePointLeft(2);
 
-    return new MarketMetaData(feeFraction, minimumAmount, priceScale);
+    return new CurrencyPairMetaData(feeFraction, minimumAmount, null, priceScale);
   }
 
   private static BigDecimal withScale(BigDecimal value, int priceScale) {
@@ -272,15 +305,14 @@ public final class BTCEAdapters {
   }
 
   public static String getPair(CurrencyPair currencyPair) {
-	/* BTC-E signals DASH as DSH. This is a different coin. Translate in correct DASH name */	  
+    /* BTC-E signals DASH as DSH. This is a different coin. Translate in correct DASH name */
     String base = currencyPair.base.getCurrencyCode();
-    String counter = currencyPair.counter.getCurrencyCode();    
-	if (base.equals("DASH")) {
-		base = "DSH";
-	}
-	else if (counter.equals("DASH")) {
-		counter = "DSH";
-	} 
+    String counter = currencyPair.counter.getCurrencyCode();
+    if (base.equals("DASH")) {
+      base = "DSH";
+    } else if (counter.equals("DASH")) {
+      counter = "DSH";
+    }
     return (base + "_" + counter).toLowerCase();
   }
 

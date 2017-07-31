@@ -16,7 +16,7 @@ public final class OpenOrders {
 
   /**
    * Constructor
-   * 
+   *
    * @param openOrders The list of open orders
    */
   public OpenOrders(List<LimitOrder> openOrders) {
@@ -33,7 +33,7 @@ public final class OpenOrders {
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
-    if (getOpenOrders().size() < 1) {
+    if (getOpenOrders().isEmpty()) {
       sb.append("No open orders!");
     } else {
       sb.append("Open orders: \n");

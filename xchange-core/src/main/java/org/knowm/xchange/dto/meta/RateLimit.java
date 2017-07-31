@@ -15,15 +15,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 public class RateLimit {
 
-  @JsonProperty
+  @JsonProperty("calls")
   public int calls = 1;
 
-  @JsonProperty
+  @JsonProperty("time_span")
+  public int timeSpan = 1;
+
+  @JsonProperty("time_unit")
   @JsonDeserialize(using = TimeUnitDeserializer.class)
   public TimeUnit timeUnit = TimeUnit.SECONDS;
-
-  @JsonProperty
-  public int timeSpan = 1;
 
   /**
    * Constructor
@@ -31,7 +31,16 @@ public class RateLimit {
   public RateLimit() {
   }
 
-  public RateLimit(int calls, int timeSpan, TimeUnit timeUnit) {
+  /**
+   * Constructor
+   *
+   * @param calls
+   * @param timeSpan
+   * @param timeUnit
+   */
+  public RateLimit(@JsonProperty("calls") int calls, @JsonProperty("time_span") int timeSpan,
+      @JsonProperty("time_unit") @JsonDeserialize(using = TimeUnitDeserializer.class) TimeUnit timeUnit) {
+
     this.calls = calls;
     this.timeUnit = timeUnit;
     this.timeSpan = timeSpan;
@@ -39,7 +48,7 @@ public class RateLimit {
 
   /**
    * @return this rate limit as a number of milliseconds required between any two remote calls, assuming the client makes consecutive calls without
-   *         any bursts or breaks for an infinite period of time.
+   * any bursts or breaks for an infinite period of time.
    */
   @JsonIgnore
   public long getPollDelayMillis() {
@@ -52,4 +61,10 @@ public class RateLimit {
       return TimeUnit.valueOf(jp.getValueAsString().toUpperCase());
     }
   }
+
+  @Override
+  public String toString() {
+    return "RateLimit [calls=" + calls + ", timeSpan=" + timeSpan + ", timeUnit=" + timeUnit + "]";
+  }
+
 }

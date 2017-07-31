@@ -81,7 +81,7 @@ public abstract class Order {
   }
 
   public interface IOrderFlags {
-  };
+  }
 
   /**
    * Order type i.e. bid or ask
@@ -126,7 +126,7 @@ public abstract class Order {
   /**
    * Any applicable order flags
    */
-  private final Set<IOrderFlags> flags = new HashSet<IOrderFlags>();
+  private final Set<IOrderFlags> flags = new HashSet<>();
 
   /**
    * @param type Either BID (buying) or ASK (selling)
@@ -154,7 +154,7 @@ public abstract class Order {
    * @param id An id (usually provided by the exchange)
    * @param timestamp the absolute time for this order according to the exchange's server, null if not provided
    * @param averagePrice the averagePrice of fill belonging to the order
-   * @param orderStatus the status of the order at the exchange
+   * @param status the status of the order at the exchange
    */
   public Order(OrderType type, BigDecimal tradableAmount, CurrencyPair currencyPair, String id, Date timestamp, BigDecimal averagePrice,
       BigDecimal cumulativeAmount, OrderStatus status) {
@@ -230,6 +230,11 @@ public abstract class Order {
   public Set<IOrderFlags> getOrderFlags() {
 
     return flags;
+  }
+
+  public boolean hasFlag(IOrderFlags flag) {
+
+    return flags.contains(flag);
   }
 
   public void addOrderFlag(IOrderFlags flag) {
@@ -317,7 +322,7 @@ public abstract class Order {
     protected BigDecimal averagePrice;
     protected OrderStatus status;
 
-    protected final Set<IOrderFlags> flags = new HashSet<IOrderFlags>();
+    protected final Set<IOrderFlags> flags = new HashSet<>();
 
     protected Builder(OrderType orderType, CurrencyPair currencyPair) {
 

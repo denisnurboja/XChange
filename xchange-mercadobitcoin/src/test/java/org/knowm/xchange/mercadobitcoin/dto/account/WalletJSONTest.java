@@ -7,14 +7,14 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 
 import org.junit.Test;
+import org.knowm.xchange.mercadobitcoin.dto.MercadoBitcoinBaseTradeApiResult;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.knowm.xchange.mercadobitcoin.dto.MercadoBitcoinBaseTradeApiResult;
 
 /**
  * Test Mercado Bitcoin Account Info JSON parsing
- * 
+ *
  * @author Felipe Micaroni Lalli
  */
 public class WalletJSONTest {

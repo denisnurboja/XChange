@@ -6,20 +6,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.knowm.xchart.SwingWrapper;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYChartBuilder;
-import org.knowm.xchart.XYSeries;
-import org.knowm.xchart.XYSeries.XYSeriesRenderStyle;
-import org.knowm.xchart.style.markers.SeriesMarkers;
-
 import org.knowm.xchange.Exchange;
 import org.knowm.xchange.ExchangeFactory;
 import org.knowm.xchange.bitstamp.BitstampExchange;
 import org.knowm.xchange.currency.CurrencyPair;
 import org.knowm.xchange.dto.marketdata.OrderBook;
 import org.knowm.xchange.dto.trade.LimitOrder;
-import org.knowm.xchange.service.polling.marketdata.PollingMarketDataService;
+import org.knowm.xchange.service.marketdata.MarketDataService;
+import org.knowm.xchart.SwingWrapper;
+import org.knowm.xchart.XYChart;
+import org.knowm.xchart.XYChartBuilder;
+import org.knowm.xchart.XYSeries;
+import org.knowm.xchart.XYSeries.XYSeriesRenderStyle;
+import org.knowm.xchart.style.markers.SeriesMarkers;
 
 /**
  * Demonstrate requesting OrderBook from Bitstamp and plotting it using XChart.
@@ -32,7 +31,7 @@ public class DepthChartDemo {
     Exchange bitstampExchange = ExchangeFactory.INSTANCE.createExchange(BitstampExchange.class.getName());
 
     // Interested in the public market data feed (no authentication)
-    PollingMarketDataService marketDataService = bitstampExchange.getPollingMarketDataService();
+    MarketDataService marketDataService = bitstampExchange.getMarketDataService();
 
     System.out.println("fetching data...");
 
@@ -50,8 +49,8 @@ public class DepthChartDemo {
     chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Area);
 
     // BIDS
-    List<Number> xData = new ArrayList<Number>();
-    List<Number> yData = new ArrayList<Number>();
+    List<Number> xData = new ArrayList<>();
+    List<Number> yData = new ArrayList<>();
     BigDecimal accumulatedBidUnits = new BigDecimal("0");
     for (LimitOrder limitOrder : orderBook.getBids()) {
       if (limitOrder.getLimitPrice().doubleValue() > 10) {
@@ -68,8 +67,8 @@ public class DepthChartDemo {
     series.setMarker(SeriesMarkers.NONE);
 
     // ASKS
-    xData = new ArrayList<Number>();
-    yData = new ArrayList<Number>();
+    xData = new ArrayList<>();
+    yData = new ArrayList<>();
     BigDecimal accumulatedAskUnits = new BigDecimal("0");
     for (LimitOrder limitOrder : orderBook.getAsks()) {
       if (limitOrder.getLimitPrice().doubleValue() < 1000) {

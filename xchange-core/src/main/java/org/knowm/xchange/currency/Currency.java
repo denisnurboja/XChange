@@ -16,7 +16,7 @@ import java.util.TreeSet;
  */
 public class Currency implements Comparable<Currency> {
 
-  private static final Map<String, Currency> currencies = new HashMap<String, Currency>();
+  private static final Map<String, Currency> currencies = new HashMap<>();
 
   /**
    * Global currency codes
@@ -103,6 +103,7 @@ public class Currency implements Comparable<Currency> {
   public static final Currency IDR = createCurrency("IDR", "Indonesian Rupiah", null);
   public static final Currency ILS = createCurrency("ILS", "Israeli New Sheqel", null);
   public static final Currency INR = createCurrency("INR", "Indian Rupee", null);
+  public static final Currency IOC = createCurrency("IOC", "I/OCoin", null);
   public static final Currency IQD = createCurrency("IQD", "Iraqi Dinar", null);
   public static final Currency IRR = createCurrency("IRR", "Iranian Rial", null);
   public static final Currency ISK = createCurrency("ISK", "Icelandic Króna", null);
@@ -167,6 +168,7 @@ public class Currency implements Comparable<Currency> {
   public static final Currency PYG = createCurrency("PYG", "Paraguayan Guarani", null);
   public static final Currency QAR = createCurrency("QAR", "Qatari Rial", null);
   public static final Currency QRK = createCurrency("QRK", "QuarkCoin", null);
+  public static final Currency REP = createCurrency("REP", "Augur", null);
   public static final Currency RON = createCurrency("RON", "Romanian Leu", null);
   public static final Currency RSD = createCurrency("RSD", "Serbian Dinar", null);
   public static final Currency RUB = createCurrency("RUB", "Russian Ruble", null);
@@ -202,6 +204,7 @@ public class Currency implements Comparable<Currency> {
   public static final Currency UAH = createCurrency("UAH", "Ukrainian Hryvnia", null);
   public static final Currency UGX = createCurrency("UGX", "Ugandan Shilling", null);
   public static final Currency USD = createCurrency("USD", "United States Dollar", null);
+  public static final Currency USDT = createCurrency("USDT", "Tether USD Anchor", null);
   public static final Currency USDE = createCurrency("USDE", "Unitary Status Dollar eCoin", null);
   public static final Currency UTC = createCurrency("UTC", "Ultracoin", null);
   public static final Currency UYU = createCurrency("UYU", "Uruguayan Peso", null);
@@ -214,6 +217,7 @@ public class Currency implements Comparable<Currency> {
   public static final Currency WDC = createCurrency("WDC", "WorldCoin", null);
   public static final Currency WST = createCurrency("WST", "Samoan Tala", null);
   public static final Currency XAF = createCurrency("XAF", "CFA Franc BEAC", null);
+  public static final Currency XAUR = createCurrency("XAUR", "Xaurum", null);
   public static final Currency XCD = createCurrency("XCD", "East Caribbean Dollar", null);
   public static final Currency XDR = createCurrency("XDR", "Special Drawing Rights", null);
   public static final Currency XMR = createCurrency("XMR", "Monero", null);
@@ -233,7 +237,15 @@ public class Currency implements Comparable<Currency> {
    */
   public static SortedSet<Currency> getAvailableCurrencies() {
 
-    return new TreeSet<Currency>(currencies.values());
+    return new TreeSet<>(currencies.values());
+  }
+
+  /**
+   * Gets the set of available currency codes.
+   */
+  public static SortedSet<String> getAvailableCurrencyCodes() {
+
+    return new TreeSet<>(currencies.keySet());
   }
 
   private final String code;
@@ -438,7 +450,7 @@ public class Currency implements Comparable<Currency> {
     public CurrencyAttributes(String commonCode, String name, String unicode, String... alternativeCodes) {
 
       if (alternativeCodes.length > 0) {
-        this.codes = new TreeSet<String>(Arrays.asList(alternativeCodes));
+        this.codes = new TreeSet<>(Arrays.asList(alternativeCodes));
         this.codes.add(commonCode);
       } else {
         this.codes = Collections.singleton(commonCode);

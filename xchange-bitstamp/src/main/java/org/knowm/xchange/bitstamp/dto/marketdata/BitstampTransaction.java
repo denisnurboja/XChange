@@ -17,7 +17,7 @@ public class BitstampTransaction {
 
   /**
    * Constructor
-   * 
+   *
    * @param date Unix timestamp date and time
    * @param tid Transaction id
    * @param price BTC price
@@ -55,29 +55,25 @@ public class BitstampTransaction {
 
   public int getType() {
 
-	    return type;
-  }
-  
-  public BigDecimal calculateFeeBtc() {
-
-    return roundUp(amount.multiply(new BigDecimal(.5))).divide(new BigDecimal(100.));
+    return type;
   }
 
-  private BigDecimal roundUp(BigDecimal x) {
-
-    long n = x.longValue();
-    return new BigDecimal(x.equals(new BigDecimal(n)) ? n : n + 1);
-  }
-
-  public BigDecimal calculateFeeUsd() {
-
-    return calculateFeeBtc().multiply(price);
-  }
-
-  @Override
+    @Override
   public String toString() {
 
-    return "Transaction [date=" + date + ", tid=" + tid + ", price=" + price + ", amount=" + amount + "]";
+    StringBuilder builder = new StringBuilder();
+    builder.append("BitstampTransaction [date=");
+    builder.append(date);
+    builder.append(", tid=");
+    builder.append(tid);
+    builder.append(", price=");
+    builder.append(price);
+    builder.append(", amount=");
+    builder.append(amount);
+    builder.append(", type=");
+    builder.append(type);
+    builder.append("]");
+    return builder.toString();
   }
 
 }
